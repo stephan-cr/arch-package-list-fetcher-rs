@@ -10,23 +10,32 @@ use std::io::{self, ErrorKind, Read};
 use toml::Value;
 use xdg::BaseDirectories;
 
+#[derive(thiserror::Error, Debug)]
+enum ParseError {
+    #[error("no filter set found")]
+    MissingFilterSet,
+    #[error("unknown type {0}")]
+    UnknownType(Value),
+}
+
 fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let value = input.parse::<Value>()?;
     let mut result = vec![];
 
     match value {
-        toml::Value::Table(ref table) => match table.get("filter_set") {
-            Some(Value::Array(ref array)) => {
-                for elem in array {
+        toml::Value::Table(table) => match table.get("filter_set") {
+            Some(Value::Array(array)) => {
+                for elem in array.iter() {
                     match elem {
                         Value::String(string) => result.push(string.into()),
-                        _ => return Err(String::from("unexpected type").into()),
+                        other => return Err(Box::new(ParseError::UnknownType(other.clone()))),
                     }
                 }
             }
-            rest => return Err(format!("unexpected type: {:?}", rest).into()),
+            Some(other) => return Err(Box::new(ParseError::UnknownType(other.clone()))),
+            None => return Err(Box::new(ParseError::MissingFilterSet)),
         },
-        rest => return Err(format!("unexpected type: {}", rest).into()),
+        other => return Err(Box::new(ParseError::UnknownType(other))),
     };
 
     Ok(result)
@@ -40,7 +49,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut input = String::new();
     File::open(&config_path).and_then(|mut f| f.read_to_string(&mut input))?;
 
-    let filter_regexes = parse_filter_regexes(&input)?;
+    let filter_regexes = parse_filter_regexes(&input).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        std::process::exit(1);
+    });
     let set = RegexSet::new(&filter_regexes).unwrap();
 
     let mut content = Vec::new();
