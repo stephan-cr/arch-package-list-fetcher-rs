@@ -1,0 +1,17 @@
+[package]
+name = "arch-package-list-fetcher"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+colored = "2"
+http_req = "^0.8"
+regex = "1.5"
+rss = "1.0"
+toml = "0.5"
+xdg = "^2.1"
+
+[profile.release]
+lto = true
+opt-level = 's'
+panic = 'abort'
