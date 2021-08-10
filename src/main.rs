@@ -19,14 +19,14 @@ fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
             Some(Value::Array(ref array)) => {
                 for elem in array {
                     match elem {
-                        Value::String(string) => result.push(string.clone()),
+                        Value::String(string) => result.push(string.into()),
                         _ => return Err(String::from("unexpected type").into()),
                     }
                 }
             }
-            _ => return Err(String::from("unexpected type").into()),
+            rest => return Err(format!("unexpected type: {:?}", rest).into()),
         },
-        _ => return Err(String::from("unexpected type").into()),
+        rest => return Err(format!("unexpected type: {}", rest).into()),
     };
 
     Ok(result)
@@ -67,8 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
 
             let v: Vec<&str> = title.split(' ').collect();
-            let package_name = &v[0];
-            let package_version = &v[1];
+            let (package_name, package_version) = (&v[0], &v[1]);
             println!("{} {}", package_name.green(), package_version.red());
         }
     }
