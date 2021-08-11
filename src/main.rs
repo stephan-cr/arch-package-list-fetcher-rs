@@ -1,4 +1,5 @@
 #![warn(rust_2018_idioms)]
+#![warn(clippy::pedantic)]
 
 use colored::Colorize;
 use http_req::request;
@@ -62,11 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         if res.status_code().is_success() {
             let channel = Channel::read_from(&content[..])?;
             for item in channel.into_items() {
-                let title = if let Some(title) = item.title() {
-                    title
-                } else {
-                    "unknown title"
-                };
+                let title = item.title().map_or("unknown title", |title| title);
                 if set.is_match(title) {
                     continue;
                 }
