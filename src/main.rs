@@ -42,49 +42,58 @@ fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let xdg_dirs = BaseDirectories::new()?;
-    let config_path = xdg_dirs
-        .find_config_file("arch-package-list-fetcher.config")
-        .ok_or_else(|| io::Error::new(ErrorKind::NotFound, "not found"))?;
-    let mut input = String::new();
-    File::open(&config_path).and_then(|mut f| f.read_to_string(&mut input))?;
+    let result = || -> Result<(), Box<dyn Error>> {
+        let xdg_dirs = BaseDirectories::new()?;
+        let config_path = xdg_dirs
+            .find_config_file("arch-package-list-fetcher.config")
+            .ok_or_else(|| io::Error::new(ErrorKind::NotFound, "not found"))?;
+        let mut input = String::new();
+        File::open(&config_path).and_then(|mut f| f.read_to_string(&mut input))?;
 
-    let filter_regexes = parse_filter_regexes(&input).unwrap_or_else(|e| {
-        eprintln!("{}", e);
-        std::process::exit(1);
-    });
-    let set = RegexSet::new(&filter_regexes).unwrap();
+        let filter_regexes = parse_filter_regexes(&input).unwrap_or_else(|e| {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        });
+        let set = RegexSet::new(&filter_regexes)?;
 
-    let mut content = Vec::new();
-    let res = request::get("https://archlinux.org/feeds/packages/", &mut content)?;
+        let mut content = Vec::new();
+        let res = request::get("https://archlinux.org/feeds/packages/", &mut content)?;
 
-    if res.status_code().is_success() {
-        let channel = Channel::read_from(&content[..])?;
-        for item in channel.into_items() {
-            let title = if let Some(title) = item.title() {
-                title
-            } else {
-                "unknown title"
-            };
-            if set.is_match(title) {
-                continue;
+        if res.status_code().is_success() {
+            let channel = Channel::read_from(&content[..])?;
+            for item in channel.into_items() {
+                let title = if let Some(title) = item.title() {
+                    title
+                } else {
+                    "unknown title"
+                };
+                if set.is_match(title) {
+                    continue;
+                }
+
+                if item
+                    .categories()
+                    .iter()
+                    .any(|cat| cat.name().contains("Testing"))
+                {
+                    continue;
+                }
+
+                let v: Vec<&str> = title.split(' ').collect();
+                let (package_name, package_version) = (&v[0], &v[1]);
+                println!("{} {}", package_name.green(), package_version.red());
             }
-
-            if item
-                .categories()
-                .iter()
-                .any(|cat| cat.name().contains("Testing"))
-            {
-                continue;
-            }
-
-            let v: Vec<&str> = title.split(' ').collect();
-            let (package_name, package_version) = (&v[0], &v[1]);
-            println!("{} {}", package_name.green(), package_version.red());
         }
-    }
 
-    Ok(())
+        Ok(())
+    }();
+
+    if let Err(err) = result {
+        eprintln!("{}", err);
+        Err(err)
+    } else {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
