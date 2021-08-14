@@ -95,32 +95,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use std::io;
-    use toml::Value;
-
     #[test]
-    fn test_config() -> Result<(), io::Error> {
+    fn test_config() {
         let toml_str = r#"
             filter_set = [ "^haskell-", "^php\\d?-?" ]
         "#;
 
-        let value = toml_str.parse::<Value>()?;
-        match value {
-            Value::Table(ref table) => match table.get("filter_set") {
-                Some(Value::Array(ref array)) => {
-                    for elem in array {
-                        match elem {
-                            Value::String(string) => eprintln!("string {}", string),
-                            _ => panic!("unexpected type"),
-                        }
-                    }
-                }
-                _ => panic!("unexpected type"),
-            },
-            _ => panic!("unexpected type"),
-        }
-        eprintln!("{:?}", value);
+        let result = super::parse_filter_regexes(&toml_str);
 
-        Ok(())
+        assert_eq!(result.unwrap().as_slice(), &["^haskell-", "^php\\d?-?"]);
     }
 }
