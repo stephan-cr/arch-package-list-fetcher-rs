@@ -51,10 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut input = String::new();
         File::open(&config_path).and_then(|mut f| f.read_to_string(&mut input))?;
 
-        let filter_regexes = parse_filter_regexes(&input).unwrap_or_else(|e| {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        });
+        let filter_regexes = parse_filter_regexes(&input)?;
         let set = RegexSet::new(&filter_regexes)?;
 
         let mut content = Vec::new();
