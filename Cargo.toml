@@ -1,15 +1,15 @@
 [package]
 name = "arch-package-list-fetcher"
-version = "0.1.0"
-edition = "2018"
+version = "0.2.0"
+edition = "2021"
 
 [dependencies]
 colored = "2"
-http_req = "^0.8"
+http_req = "^0.9"
 regex = "1.5"
 rss = "2.0"
 thiserror = "1.0"
-toml = "0.5"
+toml = "0.7"
 xdg = "^2.1"
 
 [profile.release]

@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }();
 
     if let Err(err) = result {
-        eprintln!("{}", err);
+        eprintln!("{err}");
         Err(err)
     } else {
         Ok(())
