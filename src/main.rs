@@ -26,7 +26,7 @@ fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
     match value {
         toml::Value::Table(table) => match table.get("filter_set") {
             Some(Value::Array(array)) => {
-                for elem in array.iter() {
+                for elem in array {
                     match elem {
                         Value::String(string) => result.push(string.into()),
                         other => return Err(Box::new(ParseError::UnknownType(other.clone()))),
