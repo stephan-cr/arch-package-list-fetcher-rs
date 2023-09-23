@@ -9,7 +9,7 @@ http_req = "^0.9"
 regex = "1.5"
 rss = "2.0"
 thiserror = "1.0"
-toml = "0.7"
+toml = "0.8"
 xdg = "^2.1"
 
 [profile.release]
