@@ -49,10 +49,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             .find_config_file("arch-package-list-fetcher.config")
             .ok_or_else(|| io::Error::new(ErrorKind::NotFound, "not found"))?;
         let mut input = String::new();
-        File::open(&config_path).and_then(|mut f| f.read_to_string(&mut input))?;
+        File::open(config_path).and_then(|mut f| f.read_to_string(&mut input))?;
 
         let filter_regexes = parse_filter_regexes(&input)?;
-        let set = RegexSet::new(&filter_regexes)?;
+        let set = RegexSet::new(filter_regexes)?;
 
         let mut content = Vec::new();
         let res = request::get("https://archlinux.org/feeds/packages/", &mut content)?;
