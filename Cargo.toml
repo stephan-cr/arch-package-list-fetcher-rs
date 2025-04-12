@@ -4,7 +4,7 @@ version = "0.2.1"
 edition = "2021"
 
 [dependencies]
-colored = "2"
+colored = "3"
 http_req = "^0.13"
 regex = "1.5"
 rss = "2.0"
