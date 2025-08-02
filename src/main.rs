@@ -37,7 +37,7 @@ fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
             None => return Err(Box::new(ParseError::MissingFilterSet)),
         },
         other => return Err(Box::new(ParseError::UnknownType(other))),
-    };
+    }
 
     Ok(result)
 }
