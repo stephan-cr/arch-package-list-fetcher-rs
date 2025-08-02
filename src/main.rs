@@ -44,7 +44,7 @@ fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let result = || -> Result<(), Box<dyn Error>> {
-        let xdg_dirs = BaseDirectories::new()?;
+        let xdg_dirs = BaseDirectories::new();
         let config_path = xdg_dirs
             .find_config_file("arch-package-list-fetcher.config")
             .ok_or_else(|| io::Error::new(ErrorKind::NotFound, "not found"))?;
