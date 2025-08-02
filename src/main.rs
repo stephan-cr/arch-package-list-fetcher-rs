@@ -8,7 +8,7 @@ use rss::Channel;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, ErrorKind, Read};
-use toml::Value;
+use toml::{Table, Value};
 use xdg::BaseDirectories;
 
 #[derive(thiserror::Error, Debug)]
@@ -20,23 +20,20 @@ enum ParseError {
 }
 
 fn parse_filter_regexes(input: &str) -> Result<Vec<String>, Box<dyn Error>> {
-    let value = input.parse::<Value>()?;
+    let value = input.parse::<Table>()?;
     let mut result = vec![];
 
-    match value {
-        toml::Value::Table(table) => match table.get("filter_set") {
-            Some(Value::Array(array)) => {
-                for elem in array {
-                    match elem {
-                        Value::String(string) => result.push(string.into()),
-                        other => return Err(Box::new(ParseError::UnknownType(other.clone()))),
-                    }
+    match value.get("filter_set") {
+        Some(Value::Array(array)) => {
+            for elem in array {
+                match elem {
+                    Value::String(string) => result.push(string.into()),
+                    other => return Err(Box::new(ParseError::UnknownType(other.clone()))),
                 }
             }
-            Some(other) => return Err(Box::new(ParseError::UnknownType(other.clone()))),
-            None => return Err(Box::new(ParseError::MissingFilterSet)),
-        },
-        other => return Err(Box::new(ParseError::UnknownType(other))),
+        }
+        Some(other) => return Err(Box::new(ParseError::UnknownType(other.clone()))),
+        None => return Err(Box::new(ParseError::MissingFilterSet)),
     }
 
     Ok(result)
